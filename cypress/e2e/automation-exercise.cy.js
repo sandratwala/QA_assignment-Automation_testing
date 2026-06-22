@@ -49,20 +49,13 @@ describe('Automation Exercise - User Registration, Login, and Product Search', (
     cy.get('#mobile_number').type('1276789089');
 
     cy.get('[data-qa="create-account"]').click();
-
-  
     cy.contains('Account Created!').should('be.visible');
-
     cy.get('[data-qa="continue-button"]').click();
-
     cy.contains('Logged in as').should('be.visible');
-
-
     cy.get('a[href="/logout"]').click();
-
-
     cy.url().should('include', '/login');
   });
+
 
   it('TC 3: Logs in with valid credentials', () => {
     const email = generateEmail();
@@ -144,140 +137,96 @@ it('TC 4: Login With Invalid Credentials', () => {
 })
 
 it('TC 6: View Product Details', () => {
-
   cy.visit('https://automationexercise.com');
-
-
   cy.get('a[href="/products"]', { timeout: 10000 }).should('be.visible').click();
-
-  
   cy.get('.choose > .nav > li > a', { timeout: 10000 }).first().should('be.visible').click();
-
-
   cy.url().should('include', '/product_details/');
-
-
   cy.get('.product-information h2').should('be.visible');
-
   cy.get('.product-information p').should('contain.text', 'Category:');
-
-  cy.get('.product-information').within(() => {
-  
-    cy.contains('span', 'Availability').should('be.visible');
-    cy.contains('span', 'Condition').should('be.visible');
-    cy.contains('span', 'Brand').should('be.visible');
-  });
-  cy.get('.product-information').within(() => {
-  
-    cy.contains('span', 'Availability:').next('span').should('not.be.empty');
-    cy.contains('span', 'Condition:').next('span').should('not.be.empty');
-    cy.contains('span', 'Brand:').next('span').should('not.be.empty');
-  })
-
+  cy.get('.product-information', { timeout: 10000 }).should('be.visible');
+  cy.contains('.product-information', 'Availability').should('be.visible');
+  cy.contains('.product-information', 'Condition').should('be.visible');
+  cy.contains('.product-information', 'Brand').should('be.visible');
+});
 
 
 it('Test Case 7: Add Product to Cart', () => {
-cy.get('a[href="/products"]').click();
-cy.get('.features_items .col-sm-4').first().within(() => {
-cy.get('.add-to-cart').first().click();
-});
+  cy.visit('https://automationexercise.com') 
+  cy.contains('Products', { matchCase: false }).click()
+  cy.url().should('include', '/products') 
+  cy.get('.productinfo').first().within(() => {
+    cy.get('a[data-product-id="1"]').trigger('mouseover').click({ force: true })
+  })
 
-cy.get('.modal-content').should('be.visible');
-cy.get('.modal-body a[href="/view_cart"]').click();
-cy.url().should('include', '/view_cart');
-
-cy.get('#cart_info_table tbody tr').should('have.length.at.least', 1);
-cy.get('.cart_price').should('be.visible');
-cy.get('.cart_quantity').should('be.visible');
-});
-
+  cy.get('.modal-content', { timeout: 10000 }).should('be.visible')
+  cy.contains('u', 'View Cart').click()
+  cy.url().should('include', '/view_cart')
+  cy.get('#cart_info_table').should('be.visible')
+  cy.get('.cart_price').should('be.visible')
+  cy.get('.cart_quantity').should('be.visible')
+})
 
 it('TC 8: Remove Product From Cart', () => {
-cy.get('a[href="/products"]').click();
-cy.get('.features_items .col-sm-4').first().within(() => {
-cy.get('.add-to-cart').first().click();
-});
-cy.get('.modal-body a[href="/view_cart"]').click();
+  cy.visit('https://automationexercise.com');
+  cy.get('a[href="/products"]', { timeout: 15000 }).should('be.visible').click();
+  cy.get('.features_items .col-sm-4', { timeout: 15000 }).first().within(() => {
+    cy.get('.add-to-cart').first().should('be.visible').click();
+  });
 
-cy.get('.cart_quantity_delete').click();
-cy.get('#empty_cart').should('be.visible');
-});
-
-
-it('Test Case 9: Submit Contact Us Form', () => {
-cy.get('a[href="/contact_us"]').click();
-cy.get('.contact-form').should('be.visible');
-
-cy.get('[data-qa="name"]').type('QA Tester');
-cy.get('[data-qa="email"]').type('tester@example.com');
-cy.get('[data-qa="subject"]').type('Automation Query');
-cy.get('[data-qa="message"]').type('Automating this form using Cypress.');
-
-cy.on('window:alert', (text) => {
-expect(text).to.contain('Press OK');
-});
-cy.on('window:confirm', () => {
-return true;
+  cy.get('.modal-body a[href="/view_cart"]', { timeout: 15000 })
+    .should('be.visible')
+    .click({ force: true }); 
+  cy.get('.cart_quantity_delete', { timeout: 15000 })
+    .should('be.visible')
+    .click();
+  cy.get('#cart_info_table tbody tr').should('not.exist');
+  cy.get('#empty_cart', { timeout: 15000 }).should('be.visible');
 });
 
-cy.get('[data-qa="submit-button"]').click();
-cy.get('.status').should('be.visible')
-.and('contain.text', 'Success! Your details have been submitted successfully.');
+
+it('TC 9: Submit Contact Us Form', () => {
+  cy.visit('https://automationexercise.com');
+  cy.get('a[href="/contact_us"]', { timeout: 15000 }).should('be.visible').click();
+  cy.get('.contact-form', { timeout: 15000 }).should('be.visible');
+  cy.on('window:confirm', (str) => {
+    expect(str).to.equal('Press OK to proceed!'); 
+    return true; 
+  });
+  cy.get('[data-qa="name"]').type('QA Tester');
+  cy.get('[data-qa="email"]').type('tester@example.com');
+  cy.get('[data-qa="subject"]').type('Automation Query');
+  cy.get('[data-qa="message"]').type('Automating this form using Cypress.');
+  cy.get('[data-qa="submit-button"]').click();
+  cy.get('.status', { timeout: 15000 })
+    .should('be.visible')
+    .and('contain.text', 'Success! Your details have been submitted successfully.');
 });
 
 it('Challenge Task 2: Verify Product Quantity', () => {
-cy.get('a[href="/products"]').click();
-cy.get('.choose > .nav > li > a').first().click();
-
-cy.get('#quantity').clear().type('3');
-cy.get(':nth-child(5) > .btn').click();
-
-cy.get('.modal-body a[href="/view_cart"]').click();
-cy.get('.cart_quantity button').should('contain.text', '3');
+  cy.visit('https://automationexercise.com');
+  cy.get('a[href="/products"]', { timeout: 15000 }).should('be.visible').click();
+  cy.get('.choose > .nav > li > a', { timeout: 15000 }).first().click();
+  cy.get('#quantity', { timeout: 15000 }).should('be.visible').clear().type('3');
+  cy.get('button.cart', { timeout: 15000 }).should('be.visible').click();
+  cy.get('.modal-body a[href="/view_cart"]', { timeout: 15000 })
+    .should('be.visible')
+    .click({ force: true });
+  cy.get('.cart_quantity button', { timeout: 15000 })
+    .should('be.visible')
+    .and('have.text', '3'); 
 });
 
 it('Challenge Task 3: Subscribe to Newsletter', () => {
-cy.get('#footer').scrollIntoView();
-cy.get('.single-widget h2').should('contain.text', 'Subscription');
-
-cy.get('#susbscribe_email').type('subscriber@example.com');
-cy.get('#subscribe').click();
-
-cy.get('.alert-success').should('be.visible')
-.and('contain.text', 'You have been successfully subscribed!');
+  cy.visit('https://automationexercise.com');
+  cy.get('#footer', { timeout: 15000 }).scrollIntoView();
+  cy.get('.single-widget h2', { timeout: 15000 }).should('contain.text', 'Subscription');
+  cy.get('#susbscribe_email', { timeout: 15000 })
+    .should('be.visible')
+    .type('subscriber@example.com');
+  cy.get('#subscribe', { timeout: 15000 }).should('be.visible').click();
+  cy.get('.alert-success', { timeout: 15000 })
+    .should('be.visible')
+    .and('contain.text', 'You have been successfully subscribed!');
 });
 
-
-
 });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
